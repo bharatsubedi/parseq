@@ -50,7 +50,7 @@ class BaseSystem(pl.LightningModule, ABC):
         self.tokenizer = tokenizer
         self.charset_adapter = CharsetAdapter(charset_test)
         self.batch_size = batch_size
-        self.lr = lr
+        self.lr = float(lr)
         self.warmup_pct = warmup_pct
         self.weight_decay = weight_decay
 
