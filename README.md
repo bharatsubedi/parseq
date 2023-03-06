@@ -3,7 +3,7 @@
 # Scene Text Recognition with<br/>Permuted Autoregressive Sequence Models
 [![Apache License 2.0](https://img.shields.io/github/license/baudm/parseq)](https://github.com/baudm/parseq/blob/main/LICENSE)
 [![arXiv preprint](http://img.shields.io/badge/arXiv-2207.06966-b31b1b)](https://arxiv.org/abs/2207.06966)
-[![In Proc. ECCV 2022](http://img.shields.io/badge/ECCV-2022-6790ac)](https://eccv2022.ecva.net/)
+[![In Proc. ECCV 2022](http://img.shields.io/badge/ECCV-2022-6790ac)](https://www.ecva.net/papers/eccv_2022/papers_ECCV/html/556_ECCV_2022_paper.php)
 [![Gradio demo](https://img.shields.io/badge/%F0%9F%A4%97%20demo-Gradio-ff7c00)](https://huggingface.co/spaces/baudm/PARSeq-OCR)
 
 [**Darwin Bautista**](https://github.com/baudm) and [**Rowel Atienza**](https://github.com/roatienza)
@@ -11,9 +11,11 @@
 Electrical and Electronics Engineering Institute<br/>
 University of the Philippines, Diliman
 
+[Method](#method-tldr) | [Sample Results](#sample-results) | [Getting Started](#getting-started) | [FAQ](#frequently-asked-questions) | [Training](#training) | [Evaluation](#evaluation) | [Citation](#citation)
+
 </div>
 
-Scene Text Recognition (STR) models use language context to be more robust against noisy or corrupted images. Recent approaches like ABINet use a standalone or external Language Model (LM) for prediction refinement. In this work, we show that the external LM&mdash;which requires upfront allocation of dedicated compute capacity&mdash;is inefficient for STR due to its poor performance vs cost characteristics. We propose a more efficient approach using **p**ermuted **a**uto**r**egressive **seq**uence (PARSeq) models.
+Scene Text Recognition (STR) models use language context to be more robust against noisy or corrupted images. Recent approaches like ABINet use a standalone or external Language Model (LM) for prediction refinement. In this work, we show that the external LM&mdash;which requires upfront allocation of dedicated compute capacity&mdash;is inefficient for STR due to its poor performance vs cost characteristics. We propose a more efficient approach using **p**ermuted **a**uto**r**egressive **seq**uence (PARSeq) models. View our ECCV [poster](https://drive.google.com/file/d/19luOT_RMqmafLMhKQQHBnHNXV7fOCRfw/view) and [presentation](https://drive.google.com/file/d/11VoZW4QC5tbMwVIjKB44447uTiuCJAAD/view) for a brief overview.
 
 ![PARSeq](.github/gh-teaser.png)
 
@@ -43,7 +45,6 @@ A single Transformer can realize different models by merely varying its attentio
 
 **NOTE:** _Bold letters and underscores indicate wrong and missing character predictions, respectively._
 </div>
-
 
 ## Getting Started
 This repository contains the reference implementation for PARSeq and reproduced models (collectively referred to as _Scene Text Recognition Model Hub_). See `NOTICE` for copyright information.
@@ -76,7 +77,8 @@ parseq = torch.hub.load('baudm/parseq', 'parseq', pretrained=True).eval()
 img_transform = SceneTextDataModule.get_transform(parseq.hparams.img_size)
 
 img = Image.open('/path/to/image.png').convert('RGB')
-img = img_transform(img).unsqueeze(0)  # Preprocess. Shape: (B, C, H, W)
+# Preprocess. Model expects a batch of images with shape: (B, C, H, W)
+img = img_transform(img).unsqueeze(0)
 
 logits = parseq(img)
 logits.shape  # torch.Size([1, 26, 95]), 94 characters + [EOS] symbol
@@ -84,13 +86,18 @@ logits.shape  # torch.Size([1, 26, 95]), 94 characters + [EOS] symbol
 # Greedy decoding
 pred = logits.softmax(-1)
 label, confidence = parseq.tokenizer.decode(pred)
+print('Decoded label = {}'.format(label[0]))
 ```
+
+## Frequently Asked Questions
+- How do I train on a new language? See Issues [#5](https://github.com/baudm/parseq/issues/5) and [#9](https://github.com/baudm/parseq/issues/9).
+- Can you export to TorchScript or ONNX? Yes, see Issue [#12](https://github.com/baudm/parseq/issues/12#issuecomment-1267842315).
+- How do I test on my own dataset? See Issue [#27](https://github.com/baudm/parseq/issues/27).
+- How do I finetune and/or create a custom dataset? See Issue [#7](https://github.com/baudm/parseq/issues/7).
+- What is `val_NED`? See Issue [#10](https://github.com/baudm/parseq/issues/10).
 
 ## Training
 The training script can train any supported model. You can override any configuration using the command line. Please refer to [Hydra](https://hydra.cc) docs for more info about the syntax. Use `./train.py --help` to see the default configuration.
-```bash
-./train.py model=parseq model.perm_num=12 model.embed_dim=512  # Set embed_dim to 512 instead of 384, use 12 permutations.
-```
 
 <details><summary>Sample commands for different training configurations</summary><p>
 
@@ -231,12 +238,15 @@ We use [Ray Tune](https://www.ray.io/ray-tune) for automated parameter tuning of
 ## Citation
 ```bibtex
 @InProceedings{bautista2022parseq,
-  author={Bautista, Darwin and Atienza, Rowel},
   title={Scene Text Recognition with Permuted Autoregressive Sequence Models},
-  booktitle={Proceedings of the 17th European Conference on Computer Vision (ECCV)},
+  author={Bautista, Darwin and Atienza, Rowel},
+  booktitle={European Conference on Computer Vision},
+  pages={178--196},
   month={10},
   year={2022},
-  publisher={Springer International Publishing},
-  address={Cham}
+  publisher={Springer Nature Switzerland},
+  address={Cham},
+  doi={10.1007/978-3-031-19815-1_11},
+  url={https://doi.org/10.1007/978-3-031-19815-1_11}
 }
 ```
